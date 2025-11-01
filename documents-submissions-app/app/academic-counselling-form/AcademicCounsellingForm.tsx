@@ -40,7 +40,7 @@ const AcademicCounsellingForm = () => {
 
   return (
     <Box sx={{ mx: "auto", mt: 6, p: 4 }}>
-      <Typography variant="h5" fontWeight={600} mb={3} textAlign="center">
+      <Typography variant="h5" component="h2" fontWeight={600} mb={3} textAlign="center">
         Submit your details here
       </Typography>
     <Box
