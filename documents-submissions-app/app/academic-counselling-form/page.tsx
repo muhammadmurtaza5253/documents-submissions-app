@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import AcademicCounsellingForm from "./AcademicCounsellingForm";
+import AcademicCounsellingForm from "../features/AcademicCounselling/AcademicCounsellingForm";
 
 const Home = () => {
   return <AcademicCounsellingForm/>;
