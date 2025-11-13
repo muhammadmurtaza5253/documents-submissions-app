@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -14,18 +14,25 @@ import {
   Stack,
   Paper,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { documentTypes } from "./constants";
+import { withProviders } from "@/app/hoc/withProviders";
+import { useSnackbar } from "@/app/contexts/SnackbarProvider/useSnackbar";
 
 interface SelectedDocument {
   id: string;
   name: string;
-  file: File | null;    
+  file: File | null;
+  url?: string;
+  uploading?: boolean;
 }
 
 const Documents = () => {
   const [selectedDocuments, setSelectedDocuments] = useState<SelectedDocument[]>([]);
   const [selectedDocType, setSelectedDocType] = useState<string>("");
+  const { showSnackbar } = useSnackbar();
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const handleSelectDocument = (docType: string) => {
     if (!docType || selectedDocuments.some((doc) => doc.name === docType)) {
@@ -42,12 +49,72 @@ const Documents = () => {
     setSelectedDocType("");
   };
 
-  const handleFileUpload = (documentId: string, file: File | null) => {
+  const handleFileUpload = async (documentId: string, file: File) => {
+    // Set uploading state
     setSelectedDocuments((prev) =>
       prev.map((doc) =>
-        doc.id === documentId ? { ...doc, file } : doc
+        doc.id === documentId ? { ...doc, file, uploading: true } : doc
       )
     );
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        // Reset file state on error - show upload button again
+        setSelectedDocuments((prev) =>
+          prev.map((doc) =>
+            doc.id === documentId ? { ...doc, file: null, url: undefined, uploading: false } : doc
+          )
+        );
+        // Clear the file input so the same file can be selected again
+        const input = fileInputRefs.current[documentId];
+        if (input) {
+          input.value = "";
+        }
+        showSnackbar("Failed to upload file. Please try again.", "error");
+        return;
+      }
+
+      const data = await response.json();
+
+      // Store the URL in the document object
+      setSelectedDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === documentId
+            ? { ...doc, file, url: data.url, uploading: false }
+            : doc
+        )
+      );
+
+      // Clear the file input so the same file can be selected again if needed
+      const input = fileInputRefs.current[documentId];
+      if (input) {
+        input.value = "";
+      }
+
+      showSnackbar("File uploaded successfully!", "success");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      // Reset file state on error - show upload button again
+      setSelectedDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === documentId ? { ...doc, file: null, url: undefined, uploading: false } : doc
+        )
+      );
+      // Clear the file input so the same file can be selected again
+      const input = fileInputRefs.current[documentId];
+      if (input) {
+        input.value = "";
+      }
+      showSnackbar("Failed to upload file. Please try again.", "error");
+    }
   };
 
   const handleRemoveDocument = (documentId: string) => {
@@ -64,6 +131,10 @@ const Documents = () => {
     if (file) {
       handleFileUpload(documentId, file);
     }
+  };
+
+  const handleViewDocument = (url: string) => {
+    window.open(url, "_blank");
   };
 
   const availableDocuments = documentTypes.filter(
@@ -133,18 +204,26 @@ const Documents = () => {
                         style={{ display: "none" }}
                         id={`file-upload-${doc.id}`}
                         type="file"
+                        ref={(el) => {
+                          fileInputRefs.current[doc.id] = el;
+                        }}
                         onChange={(e) => handleFileChange(doc.id, e)}
+                        disabled={doc.uploading}
                       />
                       <label htmlFor={`file-upload-${doc.id}`}>
                         <Button
                           variant="outlined"
                           component="span"
                           sx={{ mr: 1 }}
+                          disabled={doc.uploading}
                         >
                           {doc.file ? "Change File" : "Upload"}
                         </Button>
                       </label>
-                      {doc.file && (
+                      {doc.uploading && (
+                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                      )}
+                      {doc.file && !doc.uploading && (
                         <Chip
                           label={doc.file.name}
                           size="small"
@@ -152,12 +231,24 @@ const Documents = () => {
                           sx={{ mr: 1 }}
                         />
                       )}
+                      {doc.url && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          onClick={() => handleViewDocument(doc.url!)}
+                          sx={{ mr: 1 }}
+                        >
+                          View Document
+                        </Button>
+                      )}
                       <Button
                         variant="outlined"
                         color="error"
                         size="small"
                         onClick={() => handleRemoveDocument(doc.id)}
                         sx={{ minWidth: "auto" }}
+                        disabled={doc.uploading}
                       >
                         Remove
                       </Button>
@@ -175,4 +266,4 @@ const Documents = () => {
   );
 };
 
-export default Documents;
+export default withProviders(Documents);
