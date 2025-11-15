@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -17,6 +17,7 @@ import {
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
+  CircularProgress,
 } from "@mui/material";
 import { withProviders } from "@/app/hoc/withProviders";
 import { useSnackbar } from "@/app/contexts/SnackbarProvider/useSnackbar";
@@ -35,7 +36,7 @@ interface LoginFormData {
   confirmPassword?: string;
 }
 
-const LoginPage = () => {
+const LoginPageContent = () => {
   const [mode, setMode] = useState<FormMode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -428,6 +429,27 @@ const LoginPage = () => {
         </Stack>
       </Container>
     </Box>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 };
 
