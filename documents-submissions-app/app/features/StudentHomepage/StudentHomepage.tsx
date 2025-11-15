@@ -38,10 +38,6 @@ export const StudentHomepage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const actionCards = [
     {
       title: "Academic Counselling Form",

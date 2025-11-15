@@ -35,10 +35,10 @@ const AcademicCounsellingForm = () => {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
-      fullName: "",
       email: "",
       phone: "",
       city: "",
@@ -61,6 +61,7 @@ const AcademicCounsellingForm = () => {
       showSnackbar("Error submitting data", "error");
     } else if (resp?.status === 200) {
       showSnackbar("Data submitted successfully", "success");
+      reset(); // Clear the form after successful submission
     }
   };
 
@@ -132,27 +133,14 @@ const AcademicCounsellingForm = () => {
                     Personal Information
                   </Typography>
                   <Divider sx={{ mb: 3 }} />
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                    <TextField
-                      label="Full Name"
-                      fullWidth
-                      {...register("fullName", {
-                        required: "Full Name is required",
-                      })}
-                      error={!!errors.fullName}
-                      helperText={
-                        errors.fullName?.message as string | undefined
-                      }
-                    />
-                    <TextField
-                      label="Email Address"
-                      fullWidth
-                      type="email"
-                      {...register("email", { required: "Email is required" })}
-                      error={!!errors.email}
-                      helperText={errors.email?.message as string | undefined}
-                    />
-                  </Stack>
+                  <TextField
+                    label="Email Address"
+                    fullWidth
+                    type="email"
+                    {...register("email", { required: "Email is required" })}
+                    error={!!errors.email}
+                    helperText={errors.email?.message as string | undefined}
+                  />
 
                   <Stack
                     direction={{ xs: "column", sm: "row" }}
