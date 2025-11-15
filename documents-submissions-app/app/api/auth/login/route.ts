@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate a simple token (in production, use JWT or similar)
-    const token = Buffer.from(`${username}:${Date.now()}`).toString("base64");
+    // const token = Buffer.from(`${username}:${Date.now()}`).toString("base64");
 
     // Create response with user data
     const response = NextResponse.json({
@@ -47,6 +47,15 @@ export async function POST(request: NextRequest) {
       user: {
         id: user._id.toString(),
         username: user.username,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        zip: user.zip,
+        country: user.country,
+        role: user.role,
       },
     });
 

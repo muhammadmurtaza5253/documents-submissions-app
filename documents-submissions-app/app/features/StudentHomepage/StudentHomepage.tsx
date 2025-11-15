@@ -1,23 +1,34 @@
 "use client";
 
-import { 
-  Box, 
-  Button, 
-  Card, 
-  CardContent, 
-  Container, 
-  Stack, 
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Container,
+  Stack,
   Typography,
-  useTheme
+  useTheme,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import SchoolIcon from "@mui/icons-material/School";
 import DescriptionIcon from "@mui/icons-material/Description";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import { useAuth } from "@/app/contexts/AuthProvider";
+import { getDataFromLocalStorage } from "@/app/utils/getDataFromLocalStorage";
+import { useEffect, useState } from "react";
 
 export const StudentHomepage = () => {
+  console.log("StudentHomepage");
   const router = useRouter();
   const theme = useTheme();
+  const { logout } = useAuth();
+  const [studentName, setStudentName] = useState(" ");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStudentName(getDataFromLocalStorage("name") || " ");
+  }, []);
 
   const academicCounsellingFormClick = () => {
     router.push("/academic-counselling-form");
@@ -27,21 +38,11 @@ export const StudentHomepage = () => {
     router.push("/documents");
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/users");
-      const data = await response.json();
-      console.log(data);
-    }
-    catch (error) {
-      console.error("Error fetching users:", error);  
-    }
-  };
-
   const actionCards = [
     {
       title: "Academic Counselling Form",
-      description: "Fill out the academic counselling form to get personalized guidance and support for your academic journey.",
+      description:
+        "Fill out the academic counselling form to get personalized guidance and support for your academic journey.",
       icon: <SchoolIcon sx={{ fontSize: 48 }} />,
       onClick: academicCounsellingFormClick,
       color: theme.palette.primary.main,
@@ -49,7 +50,8 @@ export const StudentHomepage = () => {
     },
     {
       title: "Submit Your Documents",
-      description: "Upload and submit your required documents for review and processing.",
+      description:
+        "Upload and submit your required documents for review and processing.",
       icon: <DescriptionIcon sx={{ fontSize: 48 }} />,
       onClick: submitDocsClick,
       color: theme.palette.info.main,
@@ -57,66 +59,107 @@ export const StudentHomepage = () => {
     },
   ];
 
-  return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Stack spacing={6}>
-        {/* Header Section */}
-        <Box textAlign="center">
-          <Typography 
-            variant="h3" 
-            component="h1" 
-            gutterBottom
-            sx={{ 
-              fontWeight: 600,
-              color: theme.palette.text.primary,
-              mb: 2
-            }}
-          >
-            Welcome, Student!
-          </Typography>
-          <Typography 
-            variant="h6" 
-            color="text.secondary"
-            sx={{ 
-              maxWidth: "600px",
-              mx: "auto",
-              fontWeight: 400
-            }}
-          >
-            Manage your academic journey and document submissions all in one place
-          </Typography>
-        </Box>
+  const handleLogout = () => {
+    if (window.localStorage) {
+      window.localStorage.removeItem("user");
+    }
+    logout();
+  };
 
-        {/* Action Cards */}
-        <Stack 
-          direction={{ xs: "column", sm: "row" }} 
-          spacing={4} 
-          justifyContent="center"
-          alignItems="stretch"
+  return (
+    <Stack>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          p: 3,
+        }}
+      >
+        <Button
+          variant="outlined"
+          size="medium"
+          onClick={handleLogout}
+          startIcon={<LogoutOutlinedIcon />}
+          sx={{
+            px: 3,
+            py: 1,
+            fontSize: 14,
+            fontWeight: 500,
+            textTransform: "none",
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.primary,
+            "&:hover": {
+              borderColor: theme.palette.error.main,
+              color: theme.palette.error.main,
+              backgroundColor: theme.palette.error.light + "10",
+            },
+          }}
         >
-          {actionCards.map((card, index) => (
-            <Box key={index} sx={{ flex: 1, maxWidth: { sm: "500px" } }}>
-              <Card
+          Logout
+        </Button>
+      </Box>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Stack spacing={6}>
+          {/* Header Section */}
+          <Box textAlign="center">
+            {studentName && (
+              <Typography
+                variant="h3"
+                component="h1"
+                gutterBottom
                 sx={{
-                  height: "100%",
-                  transition: "all 0.3s ease-in-out",
-                  border: `1px solid ${theme.palette.divider}`,
-                  "&:hover": {
-                    boxShadow: `0 8px 24px ${card.color}40`,
-                  },
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  mb: 2,
                 }}
               >
-                <CardContent
+                Welcome, {studentName}!
+              </Typography>
+            )}
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              sx={{
+                maxWidth: "600px",
+                mx: "auto",
+                fontWeight: 400,
+              }}
+            >
+              Manage your academic journey and document submissions all in one
+              place
+            </Typography>
+          </Box>
+
+          {/* Action Cards */}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={4}
+            justifyContent="center"
+            alignItems="stretch"
+          >
+            {actionCards.map((card, index) => (
+              <Box key={index} sx={{ flex: 1, maxWidth: { sm: "500px" } }}>
+                <Card
                   sx={{
-                    p: 4,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                    minHeight: "280px",
-                    justifyContent: "center",
+                    height: "100%",
+                    transition: "all 0.3s ease-in-out",
+                    border: `1px solid ${theme.palette.divider}`,
+                    "&:hover": {
+                      boxShadow: `0 8px 24px ${card.color}40`,
+                    },
                   }}
                 >
+                  <CardContent
+                    sx={{
+                      p: 4,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      minHeight: "280px",
+                      justifyContent: "center",
+                    }}
+                  >
                     <Box
                       sx={{
                         width: 100,
@@ -172,11 +215,12 @@ export const StudentHomepage = () => {
                       Get Started
                     </Button>
                   </CardContent>
-              </Card>
-            </Box>
-          ))}
+                </Card>
+              </Box>
+            ))}
+          </Stack>
         </Stack>
-      </Stack>
-    </Container>
+      </Container>
+    </Stack>
   );
 };

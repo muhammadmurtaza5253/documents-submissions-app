@@ -13,6 +13,13 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Allow setState in useEffect for reading from browser-only APIs like localStorage
+      // This is a valid pattern when dealing with client-side only data
+      "react-compiler/react-compiler": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

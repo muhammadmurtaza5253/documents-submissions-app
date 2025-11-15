@@ -109,10 +109,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const logout = () => {
-    // Clear auth token cookie
-    // document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    setUser(null);
+  const logout = async () => {
+    try { 
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null);
+    }
+    catch (error) {
+      console.error("Logout error:", error);
+    }
     router.push("/login");
   };
 

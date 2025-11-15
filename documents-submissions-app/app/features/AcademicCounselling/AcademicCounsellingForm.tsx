@@ -14,20 +14,21 @@ import {
   Divider,
   useTheme,
 } from "@mui/material";
-import { submitPersonalStudentData } from "../../services/studentService";
+import { submitPersonalStudentData, fetchExistingFormData } from "../../services/studentService";
 import {
   counsellingPurposes,
   countries,
   educationLevels,
   languages,
 } from "./constants";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { withProviders } from "@/app/hoc/withProviders";
 import { useSnackbar } from "@/app/contexts/SnackbarProvider/useSnackbar";
 import SchoolIcon from "@mui/icons-material/School";
 
 const AcademicCounsellingForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const { showSnackbar } = useSnackbar();
   const theme = useTheme();
 
@@ -53,6 +54,29 @@ const AcademicCounsellingForm = () => {
     },
   });
 
+  // Load existing form data on component mount
+  useEffect(() => {
+    const loadExistingData = async () => {
+      setIsLoadingData(true);
+      const { error, data } = await fetchExistingFormData();
+      
+      if (!error && data) {
+        // Check if any form field has data (user has filled the form before)
+        const hasData = Object.values(data).some(value => value && value !== "");
+        
+        if (hasData) {
+          // Populate form with existing data
+          reset(data);
+          showSnackbar("Your previous details has been loaded again", "info");
+        }
+      }
+      
+      setIsLoadingData(false);
+    };
+
+    loadExistingData();
+  }, [reset, showSnackbar]);
+
   const onSubmit = async (data: unknown) => {
     setIsLoading(true);
     const { resp, error } = await submitPersonalStudentData(data);
@@ -61,9 +85,24 @@ const AcademicCounsellingForm = () => {
       showSnackbar("Error submitting data", "error");
     } else if (resp?.status === 200) {
       showSnackbar("Data submitted successfully", "success");
-      reset(); // Clear the form after successful submission
+      // Reload the form data to show the updated values
+      const { error: fetchError, data: updatedData } = await fetchExistingFormData();
+      if (!fetchError && updatedData) {
+        reset(updatedData);
+      }
     }
   };
+
+  // Show loading state while fetching existing data
+  if (isLoadingData) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
