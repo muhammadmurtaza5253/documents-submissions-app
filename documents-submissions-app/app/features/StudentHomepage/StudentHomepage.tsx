@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import SchoolIcon from "@mui/icons-material/School";
 import DescriptionIcon from "@mui/icons-material/Description";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useAuth } from "@/app/contexts/AuthProvider";
 import { getDataFromLocalStorage } from "@/app/utils/getDataFromLocalStorage";
@@ -38,6 +39,10 @@ export const StudentHomepage = () => {
     router.push("/documents");
   };
 
+  const counselorUpdatesClick = () => {
+    router.push('/counselor-updates');
+  };
+
   const actionCards = [
     {
       title: "Academic Counselling Form",
@@ -56,6 +61,16 @@ export const StudentHomepage = () => {
       onClick: submitDocsClick,
       color: theme.palette.info.main,
       bgColor: theme.palette.info.light + "15",
+    },
+    {
+      title: "Updates with the counselor",
+      description:
+        "Have a look at your updates with our counselor!",
+      icon: <NotificationsIcon sx={{ fontSize: 48 }} />,
+      onClick: counselorUpdatesClick,
+      color: theme.palette.info.main,
+      bgColor: theme.palette.info.light + "15",
+      buttonText: 'Proceed'
     },
   ];
 
@@ -131,14 +146,19 @@ export const StudentHomepage = () => {
           </Box>
 
           {/* Action Cards */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={4}
-            justifyContent="center"
-            alignItems="stretch"
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              flexWrap: "wrap",
+              gap: 4,
+              justifyContent: "center",
+            }}
           >
             {actionCards.map((card, index) => (
-              <Box key={index} sx={{ flex: 1, maxWidth: { sm: "500px" } }}>
+              <Box
+                key={index}
+              >
                 <Card
                   sx={{
                     height: "100%",
@@ -212,13 +232,13 @@ export const StudentHomepage = () => {
                         },
                       }}
                     >
-                      Get Started
+                      {card.buttonText || 'Get Started'}
                     </Button>
                   </CardContent>
                 </Card>
               </Box>
             ))}
-          </Stack>
+          </Box>
         </Stack>
       </Container>
     </Stack>
