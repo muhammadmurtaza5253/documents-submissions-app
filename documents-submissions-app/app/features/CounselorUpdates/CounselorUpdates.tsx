@@ -1,101 +1,96 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   Box,
   Typography,
   Container,
   Card,
   CardContent,
-  TextField,
-  IconButton,
   Stack,
-  Avatar,
   useTheme,
-  Paper,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import PersonIcon from "@mui/icons-material/Person";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import { withProviders } from "@/app/hoc/withProviders";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: "student" | "counselor";
-  timestamp: Date;
-}
+import { realMessageObj } from "./dummyData";
+import { Activity, DateGroup, RawActivity } from "./types";
+import { formatDateKey } from "./helper";
+import { DateGroupAccordion } from "./DateGroupAccordion";
 
 const CounselorUpdates = () => {
   const theme = useTheme();
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const now = Date.now();
-    return [
-      {
-        id: "1",
-        text: "Hello! How can I help you today?",
-        sender: "counselor",
-        timestamp: new Date(now - 3600000),
-      },
-      {
-        id: "2",
-        text: "Hi, I have a question about my academic application.",
-        sender: "student",
-        timestamp: new Date(now - 3300000),
-      },
-      {
-        id: "3",
-        text: "Of course! I'd be happy to help. What specific question do you have?",
-        sender: "counselor",
-        timestamp: new Date(now - 3000000),
-      },
-    ];
-  });
-  const [inputMessage, setInputMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Sample data - in production, this would come from an API
+  const [activities, setActivities] = useState<RawActivity[]>(realMessageObj);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === "") return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputMessage,
-      sender: "student",
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newMessage]);
-    setInputMessage("");
-
-    // Simulate counselor response after a short delay
-    setTimeout(() => {
-      const counselorResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Thank you for your message. I'll get back to you shortly with more information.",
-        sender: "counselor",
-        timestamp: new Date(),
+  // Group activities by date
+  const dateGroups = useMemo<DateGroup[]>(() => {
+    const groups: { [key: string]: Activity[] } = {};
+    activities.forEach((activity) => {
+      const dateKey = formatDateKey(activity.dateCreated);
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      // Convert activity to match Activity interface (dateCreated -> timestamp)
+      const convertedActivity: Activity = {
+        id: activity.id,
+        text: activity.text,
+        sender: activity.sender as "student" | "counselor",
+        timestamp: activity.dateCreated,
+        ...(activity.documentUrl && { documentUrl: activity.documentUrl }),
+        ...(activity.documentName && { documentName: activity.documentName }),
       };
-      setMessages((prev) => [...prev, counselorResponse]);
-    }, 1000);
-  };
+      groups[dateKey].push(convertedActivity);
+    });
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+    // Ensure current date is always included (even if no activities)
+    const today = new Date();
+    const todayKey = formatDateKey(today);
+    if (!groups[todayKey]) {
+      groups[todayKey] = [];
+    }
+
+    // Convert to array and sort by date (newest first)
+    return Object.entries(groups)
+      .map(([dateKey, activities]) => ({
+        date: new Date(dateKey + "T00:00:00"),
+        activities: activities.sort(
+          (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+        ),
+      }))
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, [activities]);
+  
+  const formatDisplayDate = (date: Date): string => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const dateKey = formatDateKey(date);
+    const todayKey = formatDateKey(today);
+    const yesterdayKey = formatDateKey(yesterday);
+    
+    if (dateKey === todayKey) {
+      return "Today";
+    } else if (dateKey === yesterdayKey) {
+      return "Yesterday";
+    } else {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return formatDateKey(date) === formatDateKey(today);
+  };
+
+  const handleActivityAdded = (newActivity: RawActivity) => {
+    setActivities([...activities, newActivity]);
+    console.log("New activity:", newActivity);
   };
 
   return (
@@ -127,7 +122,7 @@ const CounselorUpdates = () => {
               mb: 2,
             }}
           >
-            Communicate with our counselor
+            Counselor Updates
           </Typography>
           <Typography
             variant="h6"
@@ -138,183 +133,35 @@ const CounselorUpdates = () => {
               fontWeight: 400,
             }}
           >
-            Chat with our counselor for guidance and support
+            Track your follow-up updates and communications with your counselor
           </Typography>
         </Box>
 
-        {/* Chat Container */}
-        <Card
-          sx={{
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            borderRadius: 3,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            height: "600px",
-          }}
-        >
-          <CardContent
-            sx={{
-              p: 0,
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            {/* Messages Container */}
-            <Box
-              sx={{
-                flex: 1,
-                overflowY: "auto",
-                p: 3,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                backgroundColor: theme.palette.background.default,
-                "&::-webkit-scrollbar": {
-                  width: "8px",
-                },
-                "&::-webkit-scrollbar-track": {
-                  background: theme.palette.grey[100],
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  background: theme.palette.grey[400],
-                  borderRadius: "4px",
-                  "&:hover": {
-                    background: theme.palette.grey[500],
-                  },
-                },
-              }}
-            >
-              {messages.map((message) => (
-                <Box
-                  key={message.id}
-                  sx={{
-                    display: "flex",
-                    justifyContent:
-                      message.sender === "student" ? "flex-end" : "flex-start",
-                    alignItems: "flex-start",
-                    gap: 1.5,
-                  }}
-                >
-                  {message.sender === "counselor" && (
-                    <Avatar
-                      sx={{
-                        bgcolor: theme.palette.info.main,
-                        width: 36,
-                        height: 36,
-                      }}
-                    >
-                      <SupportAgentIcon sx={{ fontSize: 20 }} />
-                    </Avatar>
-                  )}
-                  <Box
-                    sx={{
-                      maxWidth: "70%",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 0.5,
-                    }}
-                  >
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 2,
-                        borderRadius: 2,
-                        backgroundColor:
-                          message.sender === "student"
-                            ? theme.palette.primary.main
-                            : theme.palette.grey[200],
-                        color:
-                          message.sender === "student"
-                            ? theme.palette.primary.contrastText
-                            : theme.palette.text.primary,
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ wordBreak: "break-word" }}>
-                        {message.text}
-                      </Typography>
-                    </Paper>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{
-                        alignSelf:
-                          message.sender === "student" ? "flex-end" : "flex-start",
-                        px: 1,
-                        fontSize: "0.7rem",
-                      }}
-                    >
-                      {formatTime(message.timestamp)}
-                    </Typography>
-                  </Box>
-                  {message.sender === "student" && (
-                    <Avatar
-                      sx={{
-                        bgcolor: theme.palette.primary.main,
-                        width: 36,
-                        height: 36,
-                      }}
-                    >
-                      <PersonIcon sx={{ fontSize: 20 }} />
-                    </Avatar>
-                  )}
-                </Box>
-              ))}
-              <div ref={messagesEndRef} />
-            </Box>
-
-            {/* Input Container */}
-            <Box
-              sx={{
-                p: 2,
-                borderTop: `1px solid ${theme.palette.divider}`,
-                backgroundColor: theme.palette.background.paper,
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="flex-end">
-                <TextField
-                  fullWidth
-                  multiline
-                  maxRows={4}
-                  placeholder="Type your message..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default,
-                    },
-                  }}
+        {/* Timeline Container */}
+        <Stack spacing={2}>
+          {dateGroups.length === 0 ? (
+            <Card>
+              <CardContent sx={{ textAlign: "center", py: 6 }}>
+                <Typography variant="body1" color="text.secondary">
+                  No updates yet. Your counselor will add updates here.
+                </Typography>
+              </CardContent>
+            </Card>
+          ) : (
+            dateGroups.map((group) => {
+              const isCurrentDate = isToday(group.date);
+              return (
+                <DateGroupAccordion
+                  key={formatDateKey(group.date)}
+                  group={group}
+                  isToday={isCurrentDate}
+                  formatDisplayDate={formatDisplayDate}
+                  onActivityAdded={isCurrentDate ? handleActivityAdded : undefined}
                 />
-                <IconButton
-                  color="primary"
-                  onClick={handleSendMessage}
-                  disabled={inputMessage.trim() === ""}
-                  sx={{
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    "&:hover": {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                    "&.Mui-disabled": {
-                      backgroundColor: theme.palette.action.disabledBackground,
-                      color: theme.palette.action.disabled,
-                    },
-                    width: 48,
-                    height: 48,
-                  }}
-                >
-                  <SendIcon />
-                </IconButton>
-              </Stack>
-            </Box>
-          </CardContent>
-        </Card>
+              );
+            })
+          )}
+        </Stack>
       </Stack>
     </Container>
   );
