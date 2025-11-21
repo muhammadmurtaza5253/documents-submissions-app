@@ -16,6 +16,8 @@ import { realMessageObj } from "./dummyData";
 import { Activity, DateGroup, RawActivity } from "./types";
 import { formatDateKey } from "./helper";
 import { DateGroupAccordion } from "./DateGroupAccordion";
+import { HeaderSection } from "./HeaderSection";
+import { EmptyState } from "./EmptyState";
 
 const CounselorUpdates = () => {
   const theme = useTheme();
@@ -97,56 +99,12 @@ const CounselorUpdates = () => {
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack spacing={4}>
         {/* Header Section */}
-        <Box textAlign="center">
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              backgroundColor: theme.palette.info.light + "15",
-              color: theme.palette.info.main,
-              mb: 3,
-            }}
-          >
-            <SupportAgentIcon sx={{ fontSize: 40 }} />
-          </Box>
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{
-              fontWeight: 600,
-              color: theme.palette.text.primary,
-              mb: 2,
-            }}
-          >
-            Counselor Updates
-          </Typography>
-          <Typography
-            variant="h6"
-            color="text.secondary"
-            sx={{
-              maxWidth: "600px",
-              mx: "auto",
-              fontWeight: 400,
-            }}
-          >
-            Track your follow-up updates and communications with your counselor
-          </Typography>
-        </Box>
+       <HeaderSection />
 
         {/* Timeline Container */}
         <Stack spacing={2}>
           {dateGroups.length === 0 ? (
-            <Card>
-              <CardContent sx={{ textAlign: "center", py: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  No updates yet. Your counselor will add updates here.
-                </Typography>
-              </CardContent>
-            </Card>
+            <EmptyState />
           ) : (
             dateGroups.map((group) => {
               const isCurrentDate = isToday(group.date);
