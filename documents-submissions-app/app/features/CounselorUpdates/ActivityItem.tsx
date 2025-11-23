@@ -2,10 +2,10 @@ import { Box, Avatar, Typography, Paper, useTheme } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { Activity } from "./types";
+import { Message } from "./types";
 
 interface ActivityItemProps {
-  activity: Activity;
+  activity: Message;
 }
 
 export const ActivityItem = ({ activity }: ActivityItemProps) => {
@@ -81,7 +81,7 @@ export const ActivityItem = ({ activity }: ActivityItemProps) => {
               variant="body1"
               sx={{ wordBreak: "break-word", mb: activity.documentUrl ? 1 : 0 }}
             >
-              {activity.text}
+              {activity.message}
             </Typography>
             {activity.documentUrl && (
               <Box

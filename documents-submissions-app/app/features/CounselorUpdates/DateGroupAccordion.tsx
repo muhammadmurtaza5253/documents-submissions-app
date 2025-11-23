@@ -7,24 +7,23 @@ import {
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { DateGroup } from "./types";
+import { DateGroup, Message } from "./types";
 import { ActivityList } from "./ActivityList";
 import { TodayActivityInput } from "./TodayActivityInput";
 import { formatDateKey } from "./helper";
-import { RawActivity } from "./types";
 
 interface DateGroupAccordionProps {
   group: DateGroup;
   isToday: boolean;
-  formatDisplayDate: (date: Date) => string;
-  onActivityAdded?: (activity: RawActivity) => void;
+  formatDisplayDate: (date: Date | string) => string;
+  onMessageAdded?: (message: Message) => void;
 }
 
 export const DateGroupAccordion = ({
   group,
   isToday,
   formatDisplayDate,
-  onActivityAdded,
+  onMessageAdded,
 }: DateGroupAccordionProps) => {
   const theme = useTheme();
 
@@ -70,9 +69,9 @@ export const DateGroupAccordion = ({
         <ActivityList activities={group.activities} />
 
         {/* Input Section for Current Date */}
-        {isToday && onActivityAdded && (
+        {isToday && onMessageAdded && (
           <TodayActivityInput
-            onSend={onActivityAdded}
+            onSend={onMessageAdded}
             hasActivities={group.activities.length > 0}
           />
         )}

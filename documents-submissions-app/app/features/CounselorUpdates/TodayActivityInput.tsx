@@ -14,11 +14,11 @@ import SendIcon from "@mui/icons-material/Send";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useSnackbar } from "@/app/contexts/SnackbarProvider/useSnackbar";
-import { RawActivity } from "./types";
-import { formatDateKey } from "./helper";
+import { Message } from "./types";
+import { SENDER_TYPE } from "./constants";
 
 interface TodayActivityInputProps {
-  onSend: (activity: RawActivity) => void;
+  onSend: (message: Message) => void;
   hasActivities: boolean;
 }
 
@@ -90,16 +90,14 @@ export const TodayActivityInput = ({
     }
 
     // Create new raw activity
-    const newActivity: RawActivity = {
-      id: Date.now().toString(),
-      text: inputMessage.trim() || (documentName ? `Uploaded: ${documentName}` : ""),
-      sender: "student",
-      dateCreated: new Date(),
+    const newActivity: Message = {
+      message: inputMessage.trim() || (documentName ? `Uploaded: ${documentName}` : ""),
+      sender: SENDER_TYPE.STUDENT,
+      date: new Date(),
       ...(documentUrl && { documentUrl }),
       ...(documentName && { documentName }),
     };
 
-    showSnackbar("Your response has been sent!", "success");
     setInputMessage("");
     console.log("newActivity", newActivity);
     onSend(newActivity);

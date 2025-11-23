@@ -1,22 +1,12 @@
-export interface Activity {
-  id: string;
-  text: string;
+export interface Message {
+  message: string;
   sender: "student" | "counselor";
-  timestamp: Date;
-  documentUrl?: string;
-  documentName?: string;
-}
-
-export interface RawActivity {
-  id: string;
-  text: string;
-  sender: string;
-  dateCreated: Date;
+  date?: Date | string;
   documentUrl?: string;
   documentName?: string;
 }
 
 export interface DateGroup {
   date: Date;
-  activities: Activity[];
+  activities: Message[];
 }

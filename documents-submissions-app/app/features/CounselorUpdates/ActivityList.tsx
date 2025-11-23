@@ -1,9 +1,9 @@
 import { Box, Stack, Divider } from "@mui/material";
-import { Activity } from "./types";
+import { Message } from "./types";
 import { ActivityItem } from "./ActivityItem";
 
 interface ActivityListProps {
-  activities: Activity[];
+  activities: Message[];
 }
 
 export const ActivityList = ({ activities }: ActivityListProps) => {
@@ -15,7 +15,7 @@ export const ActivityList = ({ activities }: ActivityListProps) => {
     <Box sx={{ p: 3 }}>
       <Stack spacing={2.5}>
         {activities.map((activity, activityIndex) => (
-          <Box key={activity.id}>
+          <Box key={activityIndex}>
             <ActivityItem activity={activity} />
             {/* Divider between activities (not after last one) */}
             {activityIndex < activities.length - 1 && (
